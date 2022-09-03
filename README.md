@@ -185,20 +185,20 @@ Keep your PDF collection clean by saving annotations to separate files.
 ```
 ## annotation-ctrl  --help
 ```
- annotation-ctrl is a single button GUI for annotation-mgr that toggles displaying or not displaying 
+ annotation-ctrl is a single button GUI for annotation-mgr that toggles displaying or not displaying
                  PDF annotations that have been saved by annotation-mgr.
 
-                 The command 'annotation-ctrl' starts annotation-mgr (if not running) and also 
-                 displays a single button GUI for starting and stopping the annotation-mgr process. 
+                 The command 'annotation-ctrl' starts annotation-mgr (if not running) and also
+                 displays a single button GUI for starting and stopping the annotation-mgr process.
 
-                 See: annotation-mgr --help  
+                 See: annotation-mgr --help
 
  Usage:          Typically annotation-ctrl would be started automatically after KDE starts. This can
                  be achieved using ~/.config/autostart-scripts. The file,
 
                       start-annotation-ctrl.sh 
 
-                 is an autostart script. See the comments in that file for how to install it.    
+                 is an autostart script. See the comments in that file for how to install it.
 
  Options:        -h, --help      will print this documentation then exit.     
 
@@ -210,5 +210,5 @@ Keep your PDF collection clean by saving annotations to separate files.
 
                  -e, --exclude   passed to annotation_mgr. See: annotation-mgr --help 
 
-                 -d, --debug     passed to annotation_mgr. See: annotation-mgr --help  
+                 -d, --debug     passed to annotation_mgr. See: annotation-mgr --help 
 ```
