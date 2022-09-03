@@ -1,6 +1,23 @@
 # Annotation manager
-Keep your PDF collection clean by saving annotations to separate files.
+Keep your PDF collection clean by saving Okular annotations to separate files. Requires Python 3.
 
+## Installation
+Download the zip or tar. Create a directory (e.g., 'mkdir am-src') into which the files are 
+extracted. To test, cd into that directory and run the command,
+```
+annotation-ctrl
+```
+Using Okular, add some annotations to a PDF and Save them. Use the button to toggle display of 
+the annotations. Note that while annotations are not being displayed (i.e., while annotation-mgr 
+is not running) the PDF file is the original, e.g., same size and modification time.
+
+To enable annotation-ctrl to automatically start when KDE starts, see 'annotation-ctrl --help'.  
+
+## To remove/uninstall
+Delete the downloaded files and remove the hidden data directory ~/.annotation-manager, 
+```
+rm -rf ~/.annotation-manager
+```
 ## annotation-mgr  --help
 ```
  annotation-mgr is a python script that runs in the background to keep your PDF collection
