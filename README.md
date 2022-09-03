@@ -6,7 +6,7 @@ Keep your PDF collection clean by saving annotations to separate files.
  annotation-mgr is a python script that runs in the background to keep your PDF collection
                 clean by saving annotations to separate files.
 
-                Annotation manager currently works with the Okular PDF viewer on the KDE desktop. 
+                Annotation manager currently works with the Okular PDF viewer on the KDE desktop.
 
  Usage:         annotation-mgr is most conveniently started and stopped using annotation-ctrl. 
                 See: annotation-ctrl --help.
@@ -25,7 +25,7 @@ Keep your PDF collection clean by saving annotations to separate files.
                 files that are currently being viewed by Okular:
 
                 --  when a new PDF appears on this list its file is immediately backed up. If the
-                    PDF has a saved annotation file then its contents is appended to the PDF file 
+                    PDF has a saved annotation file then its contents is appended to the PDF file
                     being viewed, so as to display the saved annotations.
 
                 --  when a PDF drops off the list of PDFs being viewed its original file is 
@@ -54,7 +54,7 @@ Keep your PDF collection clean by saving annotations to separate files.
                 difference as a separate annotation file. 
 
  SaveAs:        The SaveAs feature of Okular creates a new PDF file. This new PDF will contain
-                what you see -- it will include any annotations that are being displayed. Sometimes 
+                what you see -- it will include any annotations that are being displayed. Sometimes
                 this is what is wanted. For example, if wanting to send an annotated PDF to be 
                 printed, or to a colleague by email.
 
@@ -123,10 +123,10 @@ Keep your PDF collection clean by saving annotations to separate files.
     of the form 
                    <PDF size>.<PDF filename>.xml
     
-    Annotations were therefore lost if PDF files were renamed, but not lost if simply moved from 
+    Annotations were therefore lost if PDF files were renamed, but not lost if simply moved from
     one directory to another. The PDF size was used to help prevent name clashes. 
 
-    The same file naming convention is currently used to save the .xml files that record viewing 
+    The same file naming convention is currently used to save the .xml files that record viewing
     data (window size, page number, etc.) to the directory
 
         ~/.local/share/okular/docdata/
@@ -134,7 +134,7 @@ Keep your PDF collection clean by saving annotations to separate files.
     Saving separate annotations was removed as of KDE Applications 17.12.
 
     Okular nowadays saves annotations by appending the annotation data to the PDF file. The 
-    annotation files created by annotation-mgr are the PDF file differences. These are not human 
+    annotation files created by annotation-mgr are the PDF file differences. These are not human
     readable nor are they easily searchable. They are named by the sha256 hash of the original PDF
     file contents, so do not get lost if the original PDF is renamed, moved, or copied.
 
@@ -150,7 +150,7 @@ Keep your PDF collection clean by saving annotations to separate files.
         By "internal" the above message obscurely means internal to Okular's hidden data 
         directories, rather than internal to the PDF. 
 
-        The banner is displayed with a SaveAs button. While annotation-mgr is running, use that 
+        The banner is displayed with a SaveAs button. While annotation-mgr is running, use that
         SaveAs option to overwrite the PDF file.       
 
         The displayed .xml annotations will be saved (as a PDF file difference) by annotation-mgr
