@@ -117,10 +117,11 @@ Keep your PDF collection clean by saving annotations to separate files.
     Earlier versions of Okular used to save annotations in human readable and easily searchable
     .xml files in directory
     
-        ~/.kde/share/apps/okular/docdata/               
+        ~/.kde/share/apps/okular/docdata/
 
-    These .xml files were named according to the size and name of the orginal PDF file, with names
-    of the form 
+    These .xml files were named according to the size and name of the orginal PDF file, with 
+    names of the form
+    
                    <PDF size>.<PDF filename>.xml
     
     Annotations were therefore lost if PDF files were renamed, but not lost if simply moved from
@@ -135,17 +136,17 @@ Keep your PDF collection clean by saving annotations to separate files.
 
     Okular nowadays saves annotations by appending the annotation data to the PDF file. The 
     annotation files created by annotation-mgr are the PDF file differences. These are not human
-    readable nor are they easily searchable. They are named by the sha256 hash of the original PDF
-    file contents, so do not get lost if the original PDF is renamed, moved, or copied.
+    readable nor are they easily searchable. They are named by the sha256 hash of the original 
+    PDF file contents, so do not get lost if the original PDF is renamed, moved, or copied.
 
     Transitioning from old .xml annotation files:
 
-        When Okular opens a PDF that has annotation data saved in the old .xml format, a banner is
-        displayed,
+        When Okular opens a PDF that has annotation data saved in the old .xml format, a banner
+        is displayed,
 
             "This document contains annotations or form data that were saved internally by a 
-             previous Okular version. Internal storage is no longer supported. Please save to a 
-             file in order to move them if you want to continue to edit the document."
+             previous Okular version. Internal storage is no longer supported. Please save to
+             a file in order to move them if you want to continue to edit the document."
 
         By "internal" the above message obscurely means internal to Okular's hidden data 
         directories, rather than internal to the PDF. 
@@ -153,8 +154,8 @@ Keep your PDF collection clean by saving annotations to separate files.
         The banner is displayed with a SaveAs button. While annotation-mgr is running, use that
         SaveAs option to overwrite the PDF file.       
 
-        The displayed .xml annotations will be saved (as a PDF file difference) by annotation-mgr
-        and the old .xml will be deleted by Okular. The banner will not be displayed again.         
+        The .xml annotations will be saved (as a PDF file difference) by annotation-mgr and the
+        .xml file will be deleted by Okular. The banner will not be displayed again.         
 
     For pros/cons and discussion: 
         
