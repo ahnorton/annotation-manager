@@ -1,6 +1,8 @@
-# annotation-manager
+# Annotation manager
 Keep your PDF collection clean by saving annotations to separate files.
 
+## annotation-mgr  --help
+```
  annotation-mgr is a python script that runs in the background to keep your PDF collection
                 clean by saving annotations to separate files.
 
@@ -20,7 +22,7 @@ Keep your PDF collection clean by saving annotations to separate files.
                 saves annotations to separate files, leaving original PDF files un-modified.
 
                 This effect is achieved as follows. Annotation manager watches the list of PDF files
-                that are currently being viewed with Okular:
+                that are currently being viewed by Okular:
 
                 --  when a new PDF appears on this list its file is immediately backed up. If the PDF
                     has a saved annotation file then its contents is appended to the PDF file being 
@@ -109,3 +111,104 @@ Keep your PDF collection clean by saving annotations to separate files.
  Author:        Andrew H. Norton (norton.ah@gmail.com)
 
  Licence:       CC0 
+```
+## annotation-mgr  --info
+```
+    Okular used to save annotations in human readable and easily searchable .xml files in directory
+    
+        ~/.kde/share/apps/okular/docdata/               
+
+    These .xml files were named according to the size and name of the orginal PDF file, with names of 
+    the form 
+                   <PDF size>.<PDF filename>.xml
+    
+    Annotations were therefore lost if PDF files were renamed, but not lost if simply moved from one 
+    directory to another. The PDF size was used to help prevent name clashes. 
+
+    The same file naming convention is currently used to save the .xml files that record viewing data
+    (window size, page number, etc.) to the directory
+
+        ~/.local/share/okular/docdata/
+
+    Saving separate annotations was removed as of KDE Applications 17.12.
+
+    Okular nowadays saves annotations by appending the annotation data to the PDF file. The annotation 
+    files created by annotation-mgr are the PDF file differences. These are not human readable nor 
+    are they easily searchable. They are named by the sha256 hash of the original PDF file contents, 
+    so do not get lost if the original PDF is renamed, moved, or copied.
+
+    Transitioning from old .xml annotation files:
+
+        When Okular opens a PDF that has annotation data saved in the old .xml format, a banner is 
+        displayed,
+
+            "This document contains annotations or form data that were saved internally by a previous 
+             Okular version. Internal storage is no longer supported. Please save to a file in order 
+             to move them if you want to continue to edit the document."
+
+        By "internal" the above message obscurely means internal to Okular's hidden data directories, 
+        rather than internal to the PDF. 
+
+        The banner is displayed with a SaveAs button. While annotation-mgr is running, use that SaveAs 
+        option to overwrite the PDF file.       
+
+        The displayed .xml annotations will be saved (as a PDF file difference) by annotation-mgr 
+        and the old .xml will be deleted by Okular. The banner will not be displayed again.         
+
+    For pros/cons and discussion: 
+        
+        The following dates are those of the first post. Comments on these posts are often made some 
+        years later. 
+
+        2007-10-31 store annotations with documents 
+        https://bugs.kde.org/show_bug.cgi?id=151614 
+
+        2011-03-15 Okular should display a warning about before annotating 
+        https://bugs.kde.org/show_bug.cgi?id=268575
+
+        2014-09-07 Survey about "Save As" and "Save" features
+        https://forum.kde.org/viewtopic.php?t=122750
+
+        2017-??-?? --- separate .xml annotations removed from Okular.
+
+        2017-10-01 Storing Okular PDF annotations in a separate file
+        https://forum.kde.org/viewtopic.php?f=251&t=141963
+
+        2018-05-28 Annotations in the separated XML files 
+        https://bugs.kde.org/show_bug.cgi?id=394775 
+ 
+        2018-07-20 Save annotations internally (docdata) 
+        https://bugs.kde.org/show_bug.cgi?id=396681
+
+        2018-08-02 .okular archive should store the original file 
+        https://bugs.kde.org/show_bug.cgi?id=397097
+```
+## annotation-ctrl  --help
+```
+ annotation-ctrl is a single button GUI for annotation-mgr that toggles displaying or not displaying 
+                 PDF annotations that have been saved by annotation-mgr.
+
+                 The command 'annotation-ctrl' starts annotation-mgr (if not already running) and also 
+                 displays a single button GUI for starting and stopping the annotation-mgr process. 
+
+                 See: annotation-mgr --help  
+
+ Usage:          Typically annotation-ctrl would be started automatically after KDE starts. This can be 
+                 achieved using ~/.config/autostart-scripts. The file,
+
+                      start-annotation-ctrl.sh 
+
+                 is an autostart script. See the comments in that file for how to install it.    
+
+ Options:        -h, --help      will print this documentation then exit.     
+
+                 -v, --version   will print the version number then exit. 
+
+                 -p, --position  pixel position of the button window: +x+y, -x+y, +x-y, -x-y. 
+                                 +/- measures from left/right (for x) or top/bottom (for y). 
+                                 E.g., --position '-0+0' is at top right corner of the screen. 
+
+                 -e, --exclude   passed to annotation_mgr. See: annotation-mgr --help 
+
+                 -d, --debug     passed to annotation_mgr. See: annotation-mgr --help  
+```
