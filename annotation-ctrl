@@ -33,7 +33,8 @@ help = """
 
 from tkinter import *
 from tkinter import ttk
-import subprocess 
+import subprocess
+import re
 from controls_file import * 
 
 # -------------------------------------------------------------------------------------------------
@@ -68,19 +69,25 @@ if ('-h' in opts_dict) or ('--help' in opts_dict):
     print(help)
     quit()
 
-if ('-p' in opts_dict):
-    pos = opts_dict['-p']
-elif ('--position' in opts_dict):
-    pos = opts_dict['--position']
-else:
-    pos = controls_get('position')
-
 options = ''    
 if ('-d' in opts_dict) or ('--debug' in opts_dict):
     options = ' -d'
     debug = True
 else:
     debug = False
+    
+if ('-p' in opts_dict):
+    initial_pos = opts_dict['-p']
+    controls_set('position', initial_pos)
+    controls_write()
+elif ('--position' in opts_dict):
+    initial_pos = opts_dict['--position']
+    controls_set('position', initial_pos)
+    controls_write()
+else:
+    initial_pos = controls_get('position')
+
+if debug: print('annotation-ctrl: initial_pos =', initial_pos)
     
 if ('-e' in opts_dict):
     options = options + ' -e ' + opts_dict['-e']    
@@ -115,18 +122,44 @@ def stop_annotation_mgr():
         b0['command'] = start_annotation_mgr
 
 def save_position(event):
-    global pos
-    # pos = root.geometry()  # only want position, not size too.
-    x = root.winfo_rootx()
-    y = root.winfo_rooty()
-    pos = '+' + str(x) + '+' + str(y)
+    pos = position() 
+    x = root.winfo_rootx()    #  +6 offset -- probably window theme specific, not used.
+    y = root.winfo_rooty()    # +31 offset -- probably window theme specific, not used.   
+    xypos = '+' + str(x) + '+' + str(y)    
     if debug: print('save_position(): event =', event)
     if debug: print('save_position(): pos =', pos)
+    if debug: print('save_position(): xypos =', xypos)
     controls_set('position', pos)
     controls_write()
-        
+
+# -------------------------------------------------------------------------------------------------
+# Position from geometry.
+#
+# If the window is dragged beyond the left or the top of the screen then root.geometry()
+# will return strings with minus signs like, '279x79+-48+-37', '279x79+1341+-44'.
+# Replace +- values by +0 and put the window back inside the screen.
+#
+# Similarly, if the window is dragged beyond the right or the bottom of the screen then root.geometry()
+# can return strings with signs like, '279x79--48--37', '279x79+1341--44'.
+# Replace -- values by -0 and put the window back inside the screen.
+#
+# The +/- signs in geometry specify the direction and origin of coords. Once set, geometry() returns
+# the same coords (i.e., uses the same signs).
+
+def position():
+    g = root.geometry()
+    if debug: print('position(): g =', g)
+    g0 = re.sub('\+-[0-9]*','+0', g)
+    g1 = re.sub('--[0-9]*','-0', g0)
+    [xstr, ystr] = re.findall('[+-][0-9]*', g1)
+    pos = xstr + ystr
+    if ('+-' in g) or ('--' in g):
+        root.geometry(pos)
+    return pos
+    
 # -------------------------------------------------------------------------------------------------
 # Adapted from: http://tkdocs.com/tutorial/firstexample.html
+# https://tkdocs.com/shipman/
 
 root = Tk()
 
@@ -134,14 +167,15 @@ width  = root.winfo_screenwidth()
 height = root.winfo_screenheight() 
 if debug: print('Screen size =', width, height)
 
-if not pos == None:
-    root.geometry(pos)
+if not initial_pos == None:
+    if debug: print('Setting geometry: initial_pos =', initial_pos)
+    root.geometry(initial_pos)
+    # root.update()
 
 root.title("annotation-ctrl")
 
 root.bind("<Configure>", save_position)
 
-# frame = ttk.Frame(root, padding="3 3 12 10")    
 frame = ttk.Frame(root)
 
 frame['padding'] = (3, 5, 3, 5)           # L,T,R,B
