@@ -3,16 +3,16 @@
 VERSION = '1.0'
 
 help = """
- annotation-ctrl is a single button GUI for annotation-mgr that toggles displaying or not displaying
-                 PDF annotations that have been saved by annotation-mgr.
+ annotation-ctrl is a single button GUI for annotation-mgr that toggles displaying or not 
+                 displaying PDF annotations that have been saved by annotation-mgr.
 
-                 The command 'annotation-ctrl' starts annotation-mgr (if not already running) and also 
-                 displays a single button GUI for starting and stopping the annotation-mgr process. 
+                 The command 'annotation-ctrl' starts annotation-mgr (if not running) and also 
+                 displays a single button GUI for starting and stopping the annotation-mgr process.
 
                  See: annotation-mgr --help  
 
- Usage:          Typically annotation-ctrl would be started automatically after KDE starts. This can be 
-                 achieved using ~/.config/autostart-scripts. The file,
+ Usage:          Typically annotation-ctrl would be started automatically after KDE starts. This
+                 can be achieved using ~/.config/autostart-scripts. The file,
 
                       start-annotation-ctrl.sh 
 
@@ -36,7 +36,7 @@ from tkinter import ttk
 import subprocess 
 from controls_file import * 
 
-# -------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 home = os.path.expanduser('~') + '/'
 dotdir = home + '.annotation-manager/'
@@ -46,7 +46,7 @@ controls_read()
 controls_set('status', 'unknown')
 controls_write()
 
-# -------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Options.
 
 import sys
@@ -87,13 +87,13 @@ if ('-e' in opts_dict):
 elif ('--exclude' in opts_dict):
     options = options + ' -e ' + opts_dict['--exclude']
 
-# -------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Path to scripts.
 
 scripts = os.path.dirname(os.path.realpath(__file__))
 if debug: print('annotation-ctrl: scripts =', scripts)
 
-# -------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 def start_annotation_mgr():
     controls_read()
@@ -125,7 +125,7 @@ def save_position(event):
     controls_set('position', pos)
     controls_write()
         
-# -------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Adapted from: http://tkdocs.com/tutorial/firstexample.html
 
 root = Tk()
