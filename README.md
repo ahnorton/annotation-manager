@@ -114,7 +114,8 @@ Keep your PDF collection clean by saving annotations to separate files.
 ```
 ## annotation-mgr  --info
 ```
-    Okular used to save annotations in human readable and easily searchable .xml files in directory
+    Earlier versions of Okular used to save annotations in human readable and easily searchable
+    .xml files in directory
     
         ~/.kde/share/apps/okular/docdata/               
 
