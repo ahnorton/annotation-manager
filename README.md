@@ -18,24 +18,24 @@ Keep your PDF collection clean by saving annotations to separate files.
                 the PDF file. Nowadays, Okular appends its annotation data to the PDF file.
 
                 The purpose annotation-mgr is to simulate the old Okular behaviour for new Okular 
-                versions. While annotation manager is running, Okular appears to behave as though it 
-                saves annotations to separate files, leaving original PDF files un-modified.
+                versions. While annotation manager is running, Okular appears to behave as though
+                it saves annotations to separate files, leaving original PDF files un-modified.
 
-                This effect is achieved as follows. Annotation manager watches the list of PDF files
-                that are currently being viewed by Okular:
+                This effect is achieved as follows. Annotation manager watches the list of PDF 
+                files that are currently being viewed by Okular:
 
-                --  when a new PDF appears on this list its file is immediately backed up. If the PDF
-                    has a saved annotation file then its contents is appended to the PDF file being 
-                    viewed, so as to display the saved annotations.
+                --  when a new PDF appears on this list its file is immediately backed up. If the
+                    PDF has a saved annotation file then its contents is appended to the PDF file 
+                    being viewed, so as to display the saved annotations.
 
-                --  when a PDF drops off the list of PDFs being viewed its original file is restored 
-                    from its backup. Any difference between the file and its backup is saved as a 
-                    separate annotation file.
+                --  when a PDF drops off the list of PDFs being viewed its original file is 
+                    restored from its backup. Any difference between the file and its backup is 
+                    saved as a separate annotation file.
                
-                The net effect can be summarised as follows: while not being used by the PDF viewer,
-                a PDF file is always an unmodified original. While being viewed, the PDF file is an 
-                annotated "working copy" that will differ from the original if annotations have been 
-                saved for that PDF.
+                The net effect can be summarised as follows: while not being used by Okular, a
+                PDF file is always an unmodified original. While being viewed, the PDF file is an
+                annotated "working copy" that will differ from the original if annotations have 
+                been saved for that PDF.
 
  Configuration: The PDF viewer must be configured to automatically reload the PDF file when its
                 contents change. For Okular, this configuation setting is found at,
@@ -43,11 +43,11 @@ Keep your PDF collection clean by saving annotations to separate files.
                     Settings -> Configure Okular -> General -> Reload document on file change
 
  Rename, move,  The file in which annotation data is saved is named with the sha256 hash of the
- and copy       contents of the PDF file. The original PDF can thereby be renamed, moved, and copied, 
-                without annotations being lost.
+ and copy       contents of the PDF file. The original PDF can thereby be renamed, moved, and 
+                copied, without annotations being lost.
                               
-                It is best not to rename, move, or copy a PDF file while it is being managed, because 
-                you will be operating on the "working copy" rather than the original file.                           
+                It is best not to rename, move, or copy a PDF file while it is being managed, 
+                because you will be operating on the "working copy" rather than the original file.
 
  Save:          When the Save feature of Okular is used, annotation manager will detect if the 
                 working copy of the PDF has been modified and will extract and save the file  
@@ -55,30 +55,30 @@ Keep your PDF collection clean by saving annotations to separate files.
 
  SaveAs:        The SaveAs feature of Okular creates a new PDF file. This new PDF will contain
                 what you see -- it will include any annotations that are being displayed. Sometimes 
-                this is what is wanted. For example, if wanting to send an annotated PDF to a printer, 
-                or to a colleague by email.
+                this is what is wanted. For example, if wanting to send an annotated PDF to be 
+                printed, or to a colleague by email.
 
-                Annotation-manager will manage this newly created PDF file just as it does any other
+                Annotation-manager will manage the newly created PDF file just as it does any other
                 original PDF. In other words, any further annotations (beyond those which are now
                 intrinsic to the newly created PDF) will be saved to a separate annotation file.  
 
                 SaveAs, when used to over-write the displayed PDF file, is equivalent to Save.  
 
- Web browser:   If your web browser is configured to open PDFs using Okular then annotations can be 
+ Web browser:   If your web browser is configured to open PDFs using Okular then annotations can be
                 saved and displayed for an online PDF regardless of whether or not not a local copy
                 is saved. (This is possible because annotations are associated by sha256 hash 
                 with the PDF file contents.)
                   
                 When a online PDF is opened by Okular the file that is initially being viewed is
-                downloaded to /tmp or a Downloads directory specified by your browser settings. 
-                To save a local copy one uses the SaveAs feature of Okular. In light of how SaveAs 
-                works, if clean PDFs are wanted then one should make it a habit to use SaveAs before 
-                making annotations. 
+                downloaded to /tmp or a Downloads directory specified by your browser settings.
+                To save a local copy one uses the SaveAs feature of Okular. In light of how SaveAs
+                works, if clean PDFs are wanted then one should make it a habit to use SaveAs 
+                before making annotations. 
 
-                If one forgets the above advice and makes annotations before using SaveAs, then one 
+                If one forgets the above advice and makes annotations before using SaveAs, then one
                 can proceed as follows: 
  
-                (1) Save your annotation edits for all PDFs (those with '*' in their window titles).  
+                (1) Save your annotations for all edited PDFs (those with '*' in window titles).  
                 (2) Click "Stop" in annotation-ctrl to turn off displaying of annotations. 
                 (3) Use SaveAs to save a clean copy of the downloaded PDF.
                 (4) Click "Start" in annotation-ctrl to resume displaying saved annotations. 
@@ -87,7 +87,7 @@ Keep your PDF collection clean by saving annotations to separate files.
 
                 -v, --version   prints version number then exits.    
 
-                -i, --info      prints information about how to transition from the old-syle .xml 
+                -i, --info      prints information about how to transition from the old-syle .xml
                                 annotations to those saved by annotation_mgr, then exit. 
 
                                 Also prints referencs to historical information on the Okular 
@@ -98,19 +98,19 @@ Keep your PDF collection clean by saving annotations to separate files.
                              
                 -e, --exclude   exclude management of PDFs that have filenames matching a pattern.
                                 Example:  
-                                          annotation-mgr --exclude '*_tex/selection.pdf' 
+                                          annotation-mgr --exclude '*_tex/selection.pdf'
   
                                 Pattern matching uses the python function fnmatch.fnmatchcase().
                                                 
                 -f, --files     prints the list of files that are being displayed by Okular,
                                 excluding those specified by the --exclude option, then exits.
 
- Locations:     All annotation data that is saved by annotation-mgr and annotation-ctrl is under 
+ Locations:     All annotation data that is saved by annotation-mgr and annotation-ctrl is under
                 ~/.annotation-manager.
 
  Author:        Andrew H. Norton (norton.ah@gmail.com)
 
- Licence:       CC0 
+ Licence:       CC0. 
 ```
 ## annotation-mgr  --info
 ```
@@ -118,47 +118,47 @@ Keep your PDF collection clean by saving annotations to separate files.
     
         ~/.kde/share/apps/okular/docdata/               
 
-    These .xml files were named according to the size and name of the orginal PDF file, with names of 
-    the form 
+    These .xml files were named according to the size and name of the orginal PDF file, with names
+    of the form 
                    <PDF size>.<PDF filename>.xml
     
-    Annotations were therefore lost if PDF files were renamed, but not lost if simply moved from one 
-    directory to another. The PDF size was used to help prevent name clashes. 
+    Annotations were therefore lost if PDF files were renamed, but not lost if simply moved from 
+    one directory to another. The PDF size was used to help prevent name clashes. 
 
-    The same file naming convention is currently used to save the .xml files that record viewing data
-    (window size, page number, etc.) to the directory
+    The same file naming convention is currently used to save the .xml files that record viewing 
+    data (window size, page number, etc.) to the directory
 
         ~/.local/share/okular/docdata/
 
     Saving separate annotations was removed as of KDE Applications 17.12.
 
-    Okular nowadays saves annotations by appending the annotation data to the PDF file. The annotation 
-    files created by annotation-mgr are the PDF file differences. These are not human readable nor 
-    are they easily searchable. They are named by the sha256 hash of the original PDF file contents, 
-    so do not get lost if the original PDF is renamed, moved, or copied.
+    Okular nowadays saves annotations by appending the annotation data to the PDF file. The 
+    annotation files created by annotation-mgr are the PDF file differences. These are not human 
+    readable nor are they easily searchable. They are named by the sha256 hash of the original PDF
+    file contents, so do not get lost if the original PDF is renamed, moved, or copied.
 
     Transitioning from old .xml annotation files:
 
-        When Okular opens a PDF that has annotation data saved in the old .xml format, a banner is 
+        When Okular opens a PDF that has annotation data saved in the old .xml format, a banner is
         displayed,
 
-            "This document contains annotations or form data that were saved internally by a previous 
-             Okular version. Internal storage is no longer supported. Please save to a file in order 
-             to move them if you want to continue to edit the document."
+            "This document contains annotations or form data that were saved internally by a 
+             previous Okular version. Internal storage is no longer supported. Please save to a 
+             file in order to move them if you want to continue to edit the document."
 
-        By "internal" the above message obscurely means internal to Okular's hidden data directories, 
-        rather than internal to the PDF. 
+        By "internal" the above message obscurely means internal to Okular's hidden data 
+        directories, rather than internal to the PDF. 
 
-        The banner is displayed with a SaveAs button. While annotation-mgr is running, use that SaveAs 
-        option to overwrite the PDF file.       
+        The banner is displayed with a SaveAs button. While annotation-mgr is running, use that 
+        SaveAs option to overwrite the PDF file.       
 
-        The displayed .xml annotations will be saved (as a PDF file difference) by annotation-mgr 
+        The displayed .xml annotations will be saved (as a PDF file difference) by annotation-mgr
         and the old .xml will be deleted by Okular. The banner will not be displayed again.         
 
     For pros/cons and discussion: 
         
-        The following dates are those of the first post. Comments on these posts are often made some 
-        years later. 
+        The following dates are those of the first post. Many comments on these posts have been
+        made some years later. 
 
         2007-10-31 store annotations with documents 
         https://bugs.kde.org/show_bug.cgi?id=151614 
@@ -188,17 +188,17 @@ Keep your PDF collection clean by saving annotations to separate files.
  annotation-ctrl is a single button GUI for annotation-mgr that toggles displaying or not 
                  displaying PDF annotations that have been saved by annotation-mgr.
 
-                 The command 'annotation-ctrl' starts annotation-mgr (if not running) and also
+                 The command 'annotation-ctrl' starts annotation-mgr (if not running) and also 
                  displays a single button GUI for starting and stopping the annotation-mgr process.
 
-                 See: annotation-mgr --help
+                 See: annotation-mgr --help  
 
  Usage:          Typically annotation-ctrl would be started automatically after KDE starts. This
                  can be achieved using ~/.config/autostart-scripts. The file,
 
                       start-annotation-ctrl.sh 
 
-                 is an autostart script. See the comments in that file for how to install it.
+                 is an autostart script. See the comments in that file for how to install it.    
 
  Options:        -h, --help      will print this documentation then exit.     
 
@@ -210,5 +210,5 @@ Keep your PDF collection clean by saving annotations to separate files.
 
                  -e, --exclude   passed to annotation_mgr. See: annotation-mgr --help 
 
-                 -d, --debug     passed to annotation_mgr. See: annotation-mgr --help 
+                 -d, --debug     passed to annotation_mgr. See: annotation-mgr --help  
 ```
