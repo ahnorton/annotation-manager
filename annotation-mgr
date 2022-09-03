@@ -110,13 +110,14 @@ help = """
 
  Author:        Andrew H. Norton (norton.ah@gmail.com)
 
- Licence:       CC0 
+ Licence:       CC0. 
 """
 
 # .................................................................................................
 
 info = """
-    Okular used to save annotations in human readable and easily searchable .xml files in directory
+    Earlier versions of Okular used to save annotations in human readable and easily searchable 
+    .xml files in directory
     
         ~/.kde/share/apps/okular/docdata/               
 
@@ -145,8 +146,8 @@ info = """
         displayed,
 
             "This document contains annotations or form data that were saved internally by a 
-             previous Okular version. Internal storage is no longer supported. Please save to a 
-             file in order to move them if you want to continue to edit the document."
+             previous Okular version. Internal storage is no longer supported. Please save to 
+             a file in order to move them if you want to continue to edit the document."
 
         By "internal" the above message obscurely means internal to Okular's hidden data 
         directories, rather than internal to the PDF. 
@@ -154,8 +155,8 @@ info = """
         The banner is displayed with a SaveAs button. While annotation-mgr is running, use that 
         SaveAs option to overwrite the PDF file.       
 
-        The displayed .xml annotations will be saved (as a PDF file difference) by annotation-mgr
-        and the old .xml will be deleted by Okular. The banner will not be displayed again.         
+        The .xml annotations will be saved (as a PDF file difference) by annotation-mgr and the
+        .xml file will be deleted by Okular. The banner will not be displayed again.         
 
     For pros/cons and discussion: 
         
