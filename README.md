@@ -2,11 +2,27 @@
 Keep your PDF collection clean by saving Okular annotations to separate files. Requires Python 3.
 
 ## Installation
-Download the zip or tar. Create a directory (e.g., 'mkdir am-src') into which the files are 
-extracted. To test, cd into that directory and run the command,
+Download the latest release (zip or tar.gz) and extract. E.g. one of,
+```
+unzip annotation-manager-1.0.zip
+```
+```
+tar xf annotation-manager-1.0.tar.gz
+```
+The extraction will create directory ./annotation-manager-1.0 (or similar, depending on version number). 
+The following scripts need to be made executable,
+```
+cd annotation-manager-1.0
+chmod +x annotation-mgr
+chmod +x annotation-ctrl
+chmod +x start-annotation-ctrl.sh
+```
+To test, run the command
 ```
 annotation-ctrl
 ```
+This will start annotation-mgr and create a one button GUI to stop/start annotation-mgr.
+
 Using Okular, add some annotations to a PDF and Save them. Use the button to toggle display of 
 the annotations. Note that while annotations are not being displayed (i.e., while annotation-mgr 
 is not running) the PDF file is the original, e.g., same size and modification time.
