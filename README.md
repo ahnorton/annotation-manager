@@ -188,13 +188,13 @@ Keep your PDF collection clean by saving annotations to separate files.
  annotation-ctrl is a single button GUI for annotation-mgr that toggles displaying or not displaying 
                  PDF annotations that have been saved by annotation-mgr.
 
-                 The command 'annotation-ctrl' starts annotation-mgr (if not already running) and also 
+                 The command 'annotation-ctrl' starts annotation-mgr (if not running) and also 
                  displays a single button GUI for starting and stopping the annotation-mgr process. 
 
                  See: annotation-mgr --help  
 
- Usage:          Typically annotation-ctrl would be started automatically after KDE starts. This can be 
-                 achieved using ~/.config/autostart-scripts. The file,
+ Usage:          Typically annotation-ctrl would be started automatically after KDE starts. This can
+                 be achieved using ~/.config/autostart-scripts. The file,
 
                       start-annotation-ctrl.sh 
 
