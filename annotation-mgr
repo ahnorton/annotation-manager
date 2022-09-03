@@ -1,0 +1,661 @@
+#!/bin/python3
+
+VERSION = '1.0'
+
+help = """
+ annotation-mgr is a python script that runs in the background to keep your PDF collection
+                clean by saving annotations to separate files.
+
+                Annotation manager currently works with the Okular PDF viewer on the KDE desktop. 
+
+ Usage:         annotation-mgr is most conveniently started and stopped using annotation-ctrl. 
+                See: annotation-ctrl --help.
+ 
+ Description:   Annotations are the highlights, underlines, text notes, free-hand lines, etc.,
+                with which users can mark-up a PDF while reading or reviewing it.
+
+                Until about 2018, Okular saved PDF annotations in separate files without modifying
+                the PDF file. Nowadays, Okular appends its annotation data to the PDF file.
+
+                The purpose annotation-mgr is to simulate the old Okular behaviour for new Okular 
+                versions. While annotation manager is running, Okular appears to behave as though it 
+                saves annotations to separate files, leaving original PDF files un-modified.
+
+                This effect is achieved as follows. Annotation manager watches the list of PDF files
+                that are currently being viewed by Okular:
+
+                --  when a new PDF appears on this list its file is immediately backed up. If the PDF
+                    has a saved annotation file then its contents is appended to the PDF file being 
+                    viewed, so as to display the saved annotations.
+
+                --  when a PDF drops off the list of PDFs being viewed its original file is restored 
+                    from its backup. Any difference between the file and its backup is saved as a 
+                    separate annotation file.
+               
+                The net effect can be summarised as follows: while not being used by the PDF viewer,
+                a PDF file is always an unmodified original. While being viewed, the PDF file is an 
+                annotated "working copy" that will differ from the original if annotations have been 
+                saved for that PDF.
+
+ Configuration: The PDF viewer must be configured to automatically reload the PDF file when its
+                contents change. For Okular, this configuation setting is found at,
+
+                    Settings -> Configure Okular -> General -> Reload document on file change
+
+ Rename, move,  The file in which annotation data is saved is named with the sha256 hash of the
+ and copy       contents of the PDF file. The original PDF can thereby be renamed, moved, and copied, 
+                without annotations being lost.
+                              
+                It is best not to rename, move, or copy a PDF file while it is being managed, because 
+                you will be operating on the "working copy" rather than the original file.                           
+
+ Save:          When the Save feature of Okular is used, annotation manager will detect if the 
+                working copy of the PDF has been modified and will extract and save the file  
+                difference as a separate annotation file. 
+
+ SaveAs:        The SaveAs feature of Okular creates a new PDF file. This new PDF will contain
+                what you see -- it will include any annotations that are being displayed. Sometimes 
+                this is what is wanted. For example, if wanting to send an annotated PDF to a printer, 
+                or to a colleague by email.
+
+                Annotation-manager will manage this newly created PDF file just as it does any other
+                original PDF. In other words, any further annotations (beyond those which are now
+                intrinsic to the newly created PDF) will be saved to a separate annotation file.  
+
+                SaveAs, when used to over-write the displayed PDF file, is equivalent to Save.  
+
+ Web browser:   If your web browser is configured to open PDFs using Okular then annotations can be 
+                saved and displayed for an online PDF regardless of whether or not not a local copy
+                is saved. (This is possible because annotations are associated by sha256 hash 
+                with the PDF file contents.)
+                  
+                When a online PDF is opened by Okular the file that is initially being viewed is
+                downloaded to /tmp or a Downloads directory specified by your browser settings. 
+                To save a local copy one uses the SaveAs feature of Okular. In light of how SaveAs 
+                works, if clean PDFs are wanted then one should make it a habit to use SaveAs before 
+                making annotations. 
+
+                If one forgets the above advice and makes annotations before using SaveAs, then one 
+                can proceed as follows: 
+ 
+                (1) Save your annotation edits for all PDFs (those with '*' in their window titles).  
+                (2) Click "Stop" in annotation-ctrl to turn off displaying of annotations. 
+                (3) Use SaveAs to save a clean copy of the downloaded PDF.
+                (4) Click "Start" in annotation-ctrl to resume displaying saved annotations. 
+                  
+ Options:       -h, --help      prints this documentation then exits.     
+
+                -v, --version   prints version number then exits.    
+
+                -i, --info      prints information about how to transition from the old-syle .xml 
+                                annotations to those saved by annotation_mgr, then exit. 
+
+                                Also prints referencs to historical information on the Okular 
+                                development decision to change from .xml annotations.
+
+                -d, --debug     will output messages about what is being done. This is useful 
+                                for understanding the inner workings of annotation-manager.
+                             
+                -e, --exclude   exclude management of PDFs that have filenames matching a pattern.
+                                Example:  
+                                          annotation-mgr --exclude '*_tex/selection.pdf' 
+  
+                                Pattern matching uses the python function fnmatch.fnmatchcase().
+                                                
+                -f, --files     prints the list of files that are being displayed by Okular,
+                                excluding those specified by the --exclude option, then exits.
+
+ Locations:     All annotation data that is saved by annotation-mgr and annotation-ctrl is under 
+                ~/.annotation-manager.
+
+ Author:        Andrew H. Norton (norton.ah@gmail.com)
+
+ Licence:       CC0 
+"""
+
+# ........................................................................................................
+
+info = """
+    Okular used to save annotations in human readable and easily searchable .xml files in directory
+    
+        ~/.kde/share/apps/okular/docdata/               
+
+    These .xml files were named according to the size and name of the orginal PDF file, with names of 
+    the form 
+                   <PDF size>.<PDF filename>.xml
+    
+    Annotations were therefore lost if PDF files were renamed, but not lost if simply moved from one 
+    directory to another. The PDF size was used to help prevent name clashes. 
+
+    The same file naming convention is currently used to save the .xml files that record viewing data
+    (window size, page number, etc.) to the directory
+
+        ~/.local/share/okular/docdata/
+
+    Saving separate annotations was removed as of KDE Applications 17.12.
+
+    Okular nowadays saves annotations by appending the annotation data to the PDF file. The annotation 
+    files created by annotation-mgr are the PDF file differences. These are not human readable nor 
+    are they easily searchable. They are named by the sha256 hash of the original PDF file contents, 
+    so do not get lost if the original PDF is renamed, moved, or copied.
+
+    Transitioning from old .xml annotation files:
+
+        When Okular opens a PDF that has annotation data saved in the old .xml format, a banner is 
+        displayed,
+
+            "This document contains annotations or form data that were saved internally by a previous 
+             Okular version. Internal storage is no longer supported. Please save to a file in order 
+             to move them if you want to continue to edit the document."
+
+        By "internal" the above message obscurely means internal to Okular's hidden data directories, 
+        rather than internal to the PDF. 
+
+        The banner is displayed with a SaveAs button. While annotation-mgr is running, use that SaveAs 
+        option to overwrite the PDF file.       
+
+        The displayed .xml annotations will be saved (as a PDF file difference) by annotation-mgr 
+        and the old .xml will be deleted by Okular. The banner will not be displayed again.         
+
+    For pros/cons and discussion: 
+        
+        The following dates are those of the first post. Comments on these posts are often made some 
+        years later. 
+
+        2007-10-31 store annotations with documents 
+        https://bugs.kde.org/show_bug.cgi?id=151614 
+
+        2011-03-15 Okular should display a warning about before annotating 
+        https://bugs.kde.org/show_bug.cgi?id=268575
+
+        2014-09-07 Survey about "Save As" and "Save" features
+        https://forum.kde.org/viewtopic.php?t=122750
+
+        2017-??-?? --- separate .xml annotations removed from Okular.
+
+        2017-10-01 Storing Okular PDF annotations in a separate file
+        https://forum.kde.org/viewtopic.php?f=251&t=141963
+
+        2018-05-28 Annotations in the separated XML files 
+        https://bugs.kde.org/show_bug.cgi?id=394775 
+ 
+        2018-07-20 Save annotations internally (docdata) 
+        https://bugs.kde.org/show_bug.cgi?id=396681
+
+        2018-08-02 .okular archive should store the original file 
+        https://bugs.kde.org/show_bug.cgi?id=397097
+"""
+
+# -------------------------------------------------------------------------------------------------------
+# Standard modules,
+
+import os
+import stat
+import time
+import socket
+import shutil
+import pickle
+import glob
+import hashlib
+import timeit
+import sys
+import filecmp
+import textwrap
+import datetime
+import subprocess
+import shlex
+import getopt
+
+# Annotation-manager modules,
+
+from displayed_files import displayed_files, debug_displayed_files, exclude_file_names      
+from trivial_dialogs import dialog, dialog_q
+from controls_file import *
+
+# Note: Module 'sched' might have been useful. 
+
+# -------------------------------------------------------------------------------------------------------
+# Options.
+
+try:
+    (opts, args) = getopt.getopt(sys.argv[1:], "vhide:f", ["version", "help", "info", "debug", "exclude=", "files"])
+except:
+    print("annotation-mgr: Unknown option. Quitting.")
+    quit()
+
+opts_dict = dict(opts)
+
+if ('-v' in opts_dict) or ('--version' in opts_dict):
+    print(VERSION)
+    quit()
+    
+if ('-h' in opts_dict) or ('--help' in opts_dict):
+    print(help)
+    quit()
+
+if ('-i' in opts_dict) or ('--info' in opts_dict):
+    print(info)
+    quit()
+
+if ('-d' in opts_dict) or ('--debug' in opts_dict):
+    debug = True
+    debug_displayed_files(True)
+else:
+    debug = False
+
+if ('-e' in opts_dict):
+    match_str = opts_dict['-e']
+    if debug: print('-e', match_str)
+    exclude_file_names(match_str)
+    
+if ('--exclude' in opts_dict):
+    match_str = opts_dict['--exclude']
+    if debug: print('-exclude', match_str)
+    exclude_file_names(match_str)
+    
+if ('-f' in opts_dict) or ('--files' in opts_dict):
+    print(displayed_files())
+    quit()
+
+if debug: print('annotation-mgr: opts_dict =', opts_dict)
+
+# -------------------------------------------------------------------------------------------------------
+# Only run one instance of annotation manager.
+
+nproc = int(subprocess.run('ps -e | grep --count annotation-mgr', shell=True, capture_output=True, text=True).stdout)
+
+if nproc > 1:
+    print('annotation-mgr: Nothing done, already running.')  
+    quit()
+
+# -------------------------------------------------------------------------------------------------------
+# Location constants.
+
+home = os.path.expanduser('~') + '/'
+dotdir = home + '.annotation-manager/'
+dirbak = dotdir + 'bak/'              # clean pdfs are temporarily backed up here while being managed.
+dirann = dotdir + 'ann/'              # permanently saved (smallish) annotation files.
+
+# Create if necessary,
+os.makedirs(dirbak, exist_ok = True)
+os.makedirs(dirann, exist_ok = True)
+
+# -------------------------------------------------------------------------------------------------------
+
+controls_file_location(dotdir + 'controls.dat')
+
+controls_set('status', 'running')
+controls_write()
+    
+# -------------------------------------------------------------------------------------------------------
+# Time now.
+
+def time_now():
+    return datetime.datetime.now().isoformat('_', timespec='milliseconds')
+
+if debug: print('Started at', time_now())
+
+# -------------------------------------------------------------------------------------------------------
+# The hash string used to name backup and annotation files, 
+
+def file_hash(fname):
+    if debug: print('file_hash(f): f =', fname)
+    h = hashlib.new('sha256')
+    with open(fname,'rb') as f:
+        contents = f.read()
+        h.update(contents)
+        return h.hexdigest() 
+
+# -------------------------------------------------------------------------------------------------------
+# The info dictionary.
+# This is a dictionary that contains info about the original PDF.
+# A syncronised copy is kept on disk in case of abrupt shutdown.
+# id = id number used to name the backup file.
+
+info_file = dirbak + 'info_dict'
+
+def info_save():
+    global info_file, info_dict
+    with open(info_file, 'wb') as g:
+        pickle.dump(info_dict, g, protocol=0)  # 0 => human readable. 
+
+def info_read():                            # Used in initialize() 
+    global info_file, info_dict
+    with open(info_file, 'rb') as g:
+        info_dict = pickle.load(g)
+        
+def info_add(f):
+    global info_dict, id
+    id = id + 1
+    h = file_hash(f)
+    s = os.path.getsize(f)
+    t = os.path.getmtime(f)
+    info_dict[f] = (id, h, s, t)
+
+def info_del(f):
+    global info_dict
+    try:                       # If zombi (viewed PDF with no file) is created while annotation_manager is not 
+        del info_dict[f]       # running, then info_dict will have no record of it. Hence possible KeyError. 
+    except:
+        pass 
+        
+# Convenience functions,
+# info_id(f)
+# info_hash(f)
+# info_size(f)
+# info_mtime(f)
+
+def info_id(f):
+    if f in info_dict:
+        return str(info_dict[f][0])
+    else:
+        print('info_id(): Quitting - Unknown key =', f)
+        quit()
+        
+def info_hash(f):
+    if f in info_dict:
+        return info_dict[f][1]
+    else:
+        print('info_hash(): Quitting - Unknown key =', f)
+        quit()
+        
+def info_size(f):
+    if f in info_dict:
+        return info_dict[f][2]
+    else:
+        print('info_size(): Quitting - Unknown key =', f)
+        quit()
+        
+def info_mtime(f):
+    if f in info_dict:
+        return info_dict[f][3]
+    else:
+        print('info_mtime(): Quitting - Unknown key =', f)
+        quit()
+        
+# -------------------------------------------------------------------------------------------------------
+# Backup the original PDF.
+# Use the unique id number to backup.
+# Use copy2 to preserve all available info about the file.
+
+def backup_original(f):
+    info_add(f)
+    id = info_id(f)
+    if os.path.exists(dirbak+id+'.pdf'):
+        if debug: print('backup_original(): Quitting - id already used.')
+        quit()                                                               # should never happen.
+    else:    
+        try:
+            shutil.copy2(f, dirbak+id+'.pdf')
+        except:
+            print('backup_original(f): Quitting - copy2() failed for f,h =', f,h)
+            print(sys.exc_info())
+            quit()                                                           # should never happen.
+    info_save()
+            
+# -------------------------------------------------------------------------------------------------------
+# Append annotations to make the working copy. 
+
+def append_annotations(f):
+    global mtime_dict
+    if debug: print('append_annotations(f): f =', f)
+    h = info_hash(f)
+    if os.path.exists(dirann+h):  
+        os.chmod(f, stat.S_IRUSR | stat.S_IWUSR)
+        subprocess.run('cat '+dirann+h+' >> '+shlex.quote(f), shell=True)
+        if debug: print('append_annotations(f): Annotation file', dirann+h)
+    else:
+        if debug: print('append_annotations(f): No annotation file.')
+    mtime_dict[f] = os.path.getmtime(f)    
+        
+# -------------------------------------------------------------------------------------------------------
+# Check if a file is annotatable.
+#
+# In normal (unmanaged) operation of the PDF viewer, to annotate a PDF the user must have write permission
+# for the PDF file, or they must own the file so that write permission can be aquired. These same permissions 
+# are required for managed PDF because the file still gets annotated -- it just gets replaced by its backup
+# later on, so as to appear that the PDF was never modified. 
+#
+# For okular (and perhaps other PDF viewers) the user must also have write permission for the directory
+# that contains the PDF because while saving file.pdf okular writes file.pdf.part (a temporary file).
+#
+# To be nice to the user, we can pop-up a message to warn about not being able to later Save their annotation
+# work if the file they are viewing is not annotatable,
+
+
+def effective_owner(f):
+    obj = os.stat(f)
+    return os.geteuid() == obj.st_uid
+
+def annotatable_q(f):
+    global message_1_seen
+    ans = (effective_owner(f) or os.access(f, os.W_OK)) and os.access(os.path.dirname(f), os.W_OK)
+    if (not ans) and (not message_1_seen.get(f, False)):
+        dialog(message_1(f))
+        message_1_seen[f] = True
+    return ans
+
+def ls_out(f):
+    return subprocess.run('ls -l -d '+shlex.quote(f), shell=True, capture_output=True, text=True).stdout
+
+def message_1(f):
+    return textwrap.dedent("""\
+
+    Annotation manager will ignore this file because you do not have the required 
+    write permissions for both the file and its containing directory, 
+    
+    """ + ls_out(os.path.dirname(f)) + """\
+    """ + ls_out(f) + """\
+
+    SaveAs could be used to make an annotatable copy.\
+    """)
+
+# A dictionary,
+message_1_seen = {}
+
+# -------------------------------------------------------------------------------------------------------
+# Restore the original PDF from its backup.
+
+def restore_original(f):
+    global info_dict
+    id = info_id(f)
+    if debug: print('restore_original(f): f =', f, "  id =", id)
+    bak = dirbak+id+'.pdf'
+    try:
+        os.rename(bak, f)    
+    except:
+        print('restore_original(f): -- rename() failed -- ', bak, " ", f)
+        quit()
+        
+# -------------------------------------------------------------------------------------------------------
+# Removed files.
+#
+# If a PDF file is deleted while okular is viewing it, then one can continue viewing and annotating,
+# but re-saving the file (by either Save or SaveAs) is impossible (an Okular bug).
+#
+# If the PDF was opened and its file deleted while annotation-manager was not running, then no backup
+# exists and the file can not be restored.
+
+
+# Remember what files have been asked about with restore_q(f),
+removed_files = set()
+
+
+def not_removed_q(f):
+    global last_file_set
+    global removed_files
+    removed = not os.path.exists(f)
+    if removed:
+        if debug: print("removed_q(f): f =", f)
+        if restore_q(f):
+            replace_removed(f)
+            return True
+        else:
+            last_file_set = last_file_set - {f}   # prevents f being mistaken as having been closed. 
+            removed_files.add(f)
+            return False
+    else:
+        removed_files = removed_files - {f}   # in case previously removed f has been restored by hand.
+        return True
+
+    
+def restore_q(f):
+    global removed_files
+    if (f not in removed_files) and backup_exists_q(f):
+        return dialog_q(restore_removed_qn(f))
+    else:
+        return False    
+
+    
+def backup_exists_q(f):
+    global info_dict
+    return f in info_dict
+
+
+def replace_removed(f):
+    if debug: print('replace_removed(f): f =', f)
+    id = info_id(f)
+    shutil.copy2(dirbak+id+'.pdf', f)
+    append_annotations(f)
+
+    
+def restore_removed_qn(f):
+    return textwrap.dedent("""\
+    
+        Missing file:  """ + f + """
+
+        This PDF file has been renamed, moved or deleted while being viewed. 
+     
+        Restore the original file?
+        """)
+
+# -------------------------------------------------------------------------------------------------------
+# Has working file f been modified since last checked?
+# I.e., has the user added annotations to the working PDF and then used "Save" to save those modifications?
+# The initial modification time is set when the working file is created --- in append_annotations().
+
+mtime_dict = {}
+
+def modified_q(f):
+    global mtime_dict
+    mtime = os.path.getmtime(f)
+    ans = not (mtime_dict[f] == mtime)
+    mtime_dict[f] = mtime
+    return ans
+
+# -------------------------------------------------------------------------------------------------------
+# Read the appended annotations and save them to the annotation file.
+# Don't save empty annotation files.
+
+def save_annotation_file(f):
+    h = info_hash(f)
+    n0 = info_size(f)
+    n1 = os.path.getsize(f)
+    if n1 > n0:
+        subprocess.run('tail -c +'+str(n0+1)+' '+shlex.quote(f)+' > '+dirann+h, shell=True)
+    
+# -------------------------------------------------------------------------------------------------------
+# The initializations for starting over.
+# In case the scrip was interupted with some original PDFs in dirbak, restore them all and start over.
+
+def initialize():
+    global info_dict, id
+    try:
+        info_read()
+    except:
+        info_dict = {}
+    for f in info_dict:
+        restore_original(f)
+    info_dict = {}    
+    info_save()
+    id = 0
+        
+# -------------------------------------------------------------------------------------------------------
+# The set of managed files.
+# Only manage files with filename extensions .pdf and .PDF (Okular can view other file types).  
+# If a PDF is not annotatable, then pop-up a one-time message, but otherwise ignore it.
+# If it becomes annotatable then it will no longer be filtered out of the returned file set.
+
+def pdf_q(f):
+    (root, ext) = os.path.splitext(f)
+    return ext in ['.pdf', '.PDF']
+
+def managed_files():
+    global removed_files
+    files1 = displayed_files() - removed_files
+    files2 = set(filter(pdf_q, files1))
+    files3 = set(filter(not_removed_q, files2))
+    files4 = set(filter(annotatable_q, files3))
+    return files4
+
+# -------------------------------------------------------------------------------------------------------
+# Event handlers.
+
+def handle_event_files_opened():
+    global last_file_set, file_set
+    files_opened = file_set - last_file_set
+    for f in files_opened:
+        if debug: print("handle_event_files_opened(): f =", f)
+        backup_original(f)
+        append_annotations(f)
+    last_file_set = last_file_set | files_opened
+        
+
+def handle_event_files_closed():
+    global last_file_set, file_set
+    files_closed = last_file_set - file_set
+    for f in files_closed:
+        if debug: print("handle_event_files_closed(): f =", f)
+        restore_original(f)
+        info_del(f)
+        info_save()
+    last_file_set = last_file_set - files_closed
+
+                    
+def handle_event_files_modified():
+    global file_set
+    for f in file_set:
+        if modified_q(f):
+            if debug: print('handle_event_files_modified(): f =', f)
+            save_annotation_file(f)
+                
+
+def handle_event_stopping():
+    global file_set
+    if controls_modified_q():
+        controls_read()
+        if debug: print("handle_event_stopping(): status =", controls_get('status'))
+        if controls_get('status') == 'stopping':
+            for f in file_set:
+                if debug: print("handle_event_stopping(): f =", f)
+                restore_original(f)
+                info_del(f)
+                info_save()
+            controls_set('status', 'stopped')
+            controls_write()
+            if debug: print('annotation-mgr quit.')
+            quit()
+        
+        
+# =======================================================================================================
+# The main loop.
+
+initialize()
+
+file_set = set()
+last_file_set = set()
+
+while True:
+
+    last_file_set = file_set
+    file_set = managed_files()
+    
+    handle_event_files_opened()
+    handle_event_files_closed()
+    handle_event_files_modified()
+    handle_event_stopping()
+    
+    time.sleep(0.3)
+
+
+# =======================================================================================================

@@ -1,0 +1,163 @@
+#!/bin/python3
+
+VERSION = '1.0'
+
+help = """
+ annotation-ctrl is a single button GUI for annotation-mgr that toggles displaying or not displaying
+                 PDF annotations that have been saved by annotation-mgr.
+
+                 The command 'annotation-ctrl' starts annotation-mgr (if not already running) and also 
+                 displays a single button GUI for starting and stopping the annotation-mgr process. 
+
+                 See: annotation-mgr --help  
+
+ Usage:          Typically annotation-ctrl would be started automatically after KDE starts. This can be 
+                 achieved using ~/.config/autostart-scripts. The file,
+
+                      start-annotation-ctrl.sh 
+
+                 is an autostart script. See the comments in that file for how to install it.    
+
+ Options:        -h, --help      will print this documentation then exit.     
+
+                 -v, --version   will print the version number then exit. 
+
+                 -p, --position  pixel position of the button window: +x+y, -x+y, +x-y, -x-y. 
+                                 +/- measures from left/right (for x) or top/bottom (for y). 
+                                 E.g., --position '-0+0' is at top right corner of the screen. 
+
+                 -e, --exclude   passed to annotation_mgr. See: annotation-mgr --help 
+
+                 -d, --debug     passed to annotation_mgr. See: annotation-mgr --help  
+"""
+
+from tkinter import *
+from tkinter import ttk
+import subprocess 
+from controls_file import * 
+
+# -------------------------------------------------------------------------------------------------------
+
+home = os.path.expanduser('~') + '/'
+dotdir = home + '.annotation-manager/'
+
+controls_file_location(dotdir + 'controls.dat')
+controls_read()
+controls_set('status', 'unknown')
+controls_write()
+
+# -------------------------------------------------------------------------------------------------------
+# Options.
+
+import sys
+import getopt
+
+try:
+    (opts, args) = getopt.getopt(sys.argv[1:], "vhp:de:", ["version", "help", "position=", "debug", "exclude="])
+except:
+    print("annotation-ctrl: Unknown option. Quitting.")
+    quit()
+
+opts_dict = dict(opts)
+
+if ('-v' in opts_dict) or ('--version' in opts_dict):
+    print(VERSION)
+    quit()
+    
+if ('-h' in opts_dict) or ('--help' in opts_dict):
+    print(help)
+    quit()
+
+if ('-p' in opts_dict):
+    pos = opts_dict['-p']
+elif ('--position' in opts_dict):
+    pos = opts_dict['--position']
+else:
+    pos = controls_get('position')
+
+options = ''    
+if ('-d' in opts_dict) or ('--debug' in opts_dict):
+    options = ' -d'
+    debug = True
+else:
+    debug = False
+    
+if ('-e' in opts_dict):
+    options = options + ' -e ' + opts_dict['-e']    
+elif ('--exclude' in opts_dict):
+    options = options + ' -e ' + opts_dict['--exclude']
+
+# -------------------------------------------------------------------------------------------------------
+# Path to scripts.
+
+scripts = os.path.dirname(os.path.realpath(__file__))
+if debug: print('annotation-ctrl: scripts =', scripts)
+
+# -------------------------------------------------------------------------------------------------------
+
+def start_annotation_mgr():
+    controls_read()
+    if not controls_get('status') == 'running':
+        controls_set('status', 'running')
+        controls_write()
+        subprocess.run(scripts + '/annotation-mgr' + options + ' &', shell=True)
+        lab['text'] = "Annotation manager is running."
+        b0['text'] = 'Stop'
+        b0['command'] = stop_annotation_mgr 
+
+def stop_annotation_mgr():
+    controls_read()
+    if not controls_get('status') == 'stopping':    
+        controls_set('status', 'stopping')
+        controls_write()
+        lab['text'] = "Annotation manager is not running."
+        b0['text'] = 'Start'
+        b0['command'] = start_annotation_mgr
+
+def save_position(event):
+    global pos
+    # pos = root.geometry()  # only want position, not size too.
+    x = root.winfo_rootx()
+    y = root.winfo_rooty()
+    pos = '+' + str(x) + '+' + str(y)
+    if debug: print('save_position(): event =', event)
+    if debug: print('save_position(): pos =', pos)
+    controls_set('position', pos)
+    controls_write()
+        
+# -------------------------------------------------------------------------------------------------------
+# Adapted from: http://tkdocs.com/tutorial/firstexample.html
+
+root = Tk()
+
+width  = root.winfo_screenwidth()  
+height = root.winfo_screenheight() 
+if debug: print('Screen size =', width, height)
+
+if not pos == None:
+    root.geometry(pos)
+
+root.title("annotation-ctrl")
+
+root.bind("<Configure>", save_position)
+
+# frame = ttk.Frame(root, padding="3 3 12 10")    
+frame = ttk.Frame(root)
+
+frame['padding'] = (3, 5, 3, 5)           # L,T,R,B
+frame.grid()
+
+lab = ttk.Label(frame, text="", width=29, anchor='center')
+lab.grid(row=1)
+
+b0 = ttk.Button(frame)
+b0.grid(row=2)
+
+for child in frame.winfo_children(): 
+    child.grid_configure(padx=5, pady=5)
+
+start_annotation_mgr()
+
+root.mainloop()
+
+
