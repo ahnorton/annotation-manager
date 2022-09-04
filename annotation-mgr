@@ -285,6 +285,7 @@ os.makedirs(dirann, exist_ok = True)
 
 controls_file_location(dotdir + 'controls.dat')
 
+controls_read()
 controls_set('status', 'running')
 controls_write()
     

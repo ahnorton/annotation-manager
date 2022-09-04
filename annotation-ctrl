@@ -7,7 +7,9 @@ help = """
                  displaying PDF annotations that have been saved by annotation-mgr.
 
                  The command 'annotation-ctrl' starts annotation-mgr (if not running) and also 
-                 displays a single button GUI for starting and stopping the annotation-mgr process.
+                 displays a single button GUI for starting and ending the annotation-mgr process.
+
+                 Closing the annotation-ctrl GUI will also end the annotation-mgr process.
 
                  See: annotation-mgr --help  
 
@@ -21,10 +23,6 @@ help = """
  Options:        -h, --help      will print this documentation then exit.     
 
                  -v, --version   will print the version number then exit. 
-
-                 -p, --position  pixel position of the button window: +x+y, -x+y, +x-y, -x-y. 
-                                 +/- measures from left/right (for x) or top/bottom (for y). 
-                                 E.g., --position '-0+0' is at top right corner of the screen. 
 
                  -e, --exclude   passed to annotation_mgr. See: annotation-mgr --help 
 
@@ -76,24 +74,21 @@ if ('-d' in opts_dict) or ('--debug' in opts_dict):
 else:
     debug = False
     
-if ('-p' in opts_dict):
-    initial_pos = opts_dict['-p']
-    controls_set('position', initial_pos)
-    controls_write()
-elif ('--position' in opts_dict):
-    initial_pos = opts_dict['--position']
-    controls_set('position', initial_pos)
-    controls_write()
-else:
-    initial_pos = controls_get('position')
-
-if debug: print('annotation-ctrl: initial_pos =', initial_pos)
-    
 if ('-e' in opts_dict):
     options = options + ' -e ' + opts_dict['-e']    
 elif ('--exclude' in opts_dict):
     options = options + ' -e ' + opts_dict['--exclude']
 
+# -------------------------------------------------------------------------------------------------
+# Get the saved position of GUI window.
+
+g = controls_get('geometry')
+if g == None:
+    initial_pos = None
+else:    
+    [initial_pos] = re.findall('[\+\-].*', g)        # drop the size part, keep from first + or -.
+if debug: print('annotation-ctrl: initial_pos =', initial_pos)
+    
 # -------------------------------------------------------------------------------------------------
 # Path to scripts.
 
@@ -121,41 +116,16 @@ def stop_annotation_mgr():
         b0['text'] = 'Start'
         b0['command'] = start_annotation_mgr
 
-def save_position(event):
-    pos = position() 
-    x = root.winfo_rootx()    #  +6 offset -- probably window theme specific, not used.
-    y = root.winfo_rooty()    # +31 offset -- probably window theme specific, not used.   
-    xypos = '+' + str(x) + '+' + str(y)    
-    if debug: print('save_position(): event =', event)
-    if debug: print('save_position(): pos =', pos)
-    if debug: print('save_position(): xypos =', xypos)
-    controls_set('position', pos)
-    controls_write()
-
-# -------------------------------------------------------------------------------------------------
-# Position from geometry.
-#
-# If the window is dragged beyond the left or the top of the screen then root.geometry()
-# will return strings with minus signs like, '279x79+-48+-37', '279x79+1341+-44'.
-# Replace +- values by +0 and put the window back inside the screen.
-#
-# Similarly, if the window is dragged beyond the right or the bottom of the screen then root.geometry()
-# can return strings with signs like, '279x79--48--37', '279x79+1341--44'.
-# Replace -- values by -0 and put the window back inside the screen.
-#
-# The +/- signs in geometry specify the direction and origin of coords. Once set, geometry() returns
-# the same coords (i.e., uses the same signs).
-
-def position():
+def save_geometry(event):
     g = root.geometry()
-    if debug: print('position(): g =', g)
-    g0 = re.sub('\+-[0-9]*','+0', g)
-    g1 = re.sub('--[0-9]*','-0', g0)
-    [xstr, ystr] = re.findall('[+-][0-9]*', g1)
-    pos = xstr + ystr
-    if ('+-' in g) or ('--' in g):
-        root.geometry(pos)
-    return pos
+    if debug: print('save_geometry(): event =', event)
+    if debug: print('save_geometry(): g =', g)
+    controls_set('geometry', g)
+    controls_write() 
+
+def close_ctrl():
+    stop_annotation_mgr()
+    root.destroy()
     
 # -------------------------------------------------------------------------------------------------
 # Adapted from: http://tkdocs.com/tutorial/firstexample.html
@@ -167,14 +137,11 @@ width  = root.winfo_screenwidth()
 height = root.winfo_screenheight() 
 if debug: print('Screen size =', width, height)
 
-if not initial_pos == None:
-    if debug: print('Setting geometry: initial_pos =', initial_pos)
-    root.geometry(initial_pos)
-    # root.update()
+if initial_pos == None: initial_pos = '+' + str(4*width//9) + '+' + str(2*height//5)
+if debug: print('annotation-ctrl: Setting geometry =', initial_pos)
+root.geometry(initial_pos)
 
 root.title("annotation-ctrl")
-
-root.bind("<Configure>", save_position)
 
 frame = ttk.Frame(root)
 
@@ -190,8 +157,15 @@ b0.grid(row=2)
 for child in frame.winfo_children(): 
     child.grid_configure(padx=5, pady=5)
 
+root.update()
+# root.update_idletasks()
+root.bind("<Configure>", save_geometry)
+
 start_annotation_mgr()
 
-root.mainloop()
+root.protocol("WM_DELETE_WINDOW", close_ctrl) 
+
+root.mainloop() 
 
 
+ 
