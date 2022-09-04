@@ -224,7 +224,9 @@ rm -rf ~/.annotation-manager
                  displaying PDF annotations that have been saved by annotation-mgr.
 
                  The command 'annotation-ctrl' starts annotation-mgr (if not running) and also 
-                 displays a single button GUI for starting and stopping the annotation-mgr process.
+                 displays a single button GUI for starting and ending the annotation-mgr process.
+                 
+                 Closing the annotation-ctrl GUI will also end the annotation-mgr process.
 
                  See: annotation-mgr --help  
 
@@ -238,10 +240,6 @@ rm -rf ~/.annotation-manager
  Options:        -h, --help      will print this documentation then exit.     
 
                  -v, --version   will print the version number then exit. 
-
-                 -p, --position  pixel position of the button window: +x+y, -x+y, +x-y, -x-y. 
-                                 +/- measures from left/right (for x) or top/bottom (for y). 
-                                 E.g., --position '-0+0' is at top right corner of the screen. 
 
                  -e, --exclude   passed to annotation_mgr. See: annotation-mgr --help 
 
