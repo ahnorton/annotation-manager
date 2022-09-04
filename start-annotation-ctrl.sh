@@ -5,19 +5,16 @@
 # Alternatively, use the commands,
 # 
 #   cd ~/.config/autostart-scripts
-#   ln -s <path-to-script-dir>/start-annotation-ctrl
+#   ln -s amdir/start-annotation-ctrl.sh
+#
+# where "amdir" is the path to the directory that contains the annotation manager
+# files (including this script).
 #
 # ----------------------------------------------------------------------------------------
 
-# This shell script should be in the same directory as the annotation-ctrl and annotation-mgr 
-# python scripts. $d is the directory of this script,
+amdir=$( dirname -- "$( readlink -f -- "$0"; )"; )
+# echo $amdir
 
-d=$( dirname -- "$( readlink -f -- "$0"; )"; )
+# Edit the following command to add any --exclude option that you require,
 
-# Edit the following command to add any options that you require (i.e., --exclude or --position),
-
-$d/annotation-ctrl &
-
-
-
-
+$amdir/annotation-ctrl &
