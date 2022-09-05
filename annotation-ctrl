@@ -40,7 +40,7 @@ from controls_file import *
 home = os.path.expanduser('~') + '/'
 dotdir = home + '.annotation-manager/'
 
-controls_file_location(dotdir + 'controls.dat')
+controls_file(dotdir + 'controls.dat')
 controls_read()
 controls_set('status', 'unknown')
 controls_write()
@@ -78,6 +78,27 @@ if ('-e' in opts_dict):
     options = options + ' -e ' + opts_dict['-e']    
 elif ('--exclude' in opts_dict):
     options = options + ' -e ' + opts_dict['--exclude']
+
+# -------------------------------------------------------------------------------------------------
+# Only run one instance of annotation-ctrl.
+
+nproc = int(subprocess.run('ps -e | grep --count annotation-ctrl', shell=True, capture_output=True, text=True).stdout)
+
+if nproc > 1:
+    print('annotation-ctrl: Nothing done, already running.')  
+    quit()
+
+# -------------------------------------------------------------------------------------------------
+# Location constants.
+
+home = os.path.expanduser('~') + '/'
+dotdir = home + '.annotation-manager/'
+dirbak = dotdir + 'bak/'           # clean pdfs are temporarily backed up here while being managed.
+dirann = dotdir + 'ann/'           # permanently saved (smallish) annotation files.
+
+# Create if necessary,
+os.makedirs(dirbak, exist_ok = True)
+os.makedirs(dirann, exist_ok = True)
 
 # -------------------------------------------------------------------------------------------------
 # Get the saved position of GUI window.
