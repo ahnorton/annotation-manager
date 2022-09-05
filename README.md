@@ -50,7 +50,7 @@ rm -rf ~/.annotation-manager
                 Until about 2018, Okular saved PDF annotations in separate files without modifying
                 the PDF file. Nowadays, Okular appends its annotation data to the PDF file.
 
-                The purpose annotation-mgr is to simulate the old Okular behaviour for new Okular 
+                The purpose of annotation-mgr is to simulate old Okular behaviour for new Okular 
                 versions. While annotation manager is running, Okular appears to behave as though
                 it saves annotations to separate files, leaving original PDF files un-modified.
 
